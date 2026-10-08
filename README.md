@@ -1,1 +1,2 @@
-# passmakerjs
+# PassMaker Worker.js
+
