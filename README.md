@@ -7,6 +7,7 @@ Everything below is done in the Cloudflare web dashboard at [dash.cloudflare.com
 **Requirements:**
 
 - A Cloudflare account (free tier is fine)
+- A free account can support 10 servers on average but more are supported if the senario differs (10 is just a comfortable amount for high frequency signups, 5 max if polling is fast, up to 20 with low usage)
 - Your domain's DNS on Cloudflare (optional, but recommended for a custom URL)
 
 ---
