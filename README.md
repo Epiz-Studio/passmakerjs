@@ -27,7 +27,7 @@ Leave this tab open — you'll need the database ID in a moment.
 ## 2. Create the Worker
 
 1. Go to **Compute (Workers)** → **Workers & Pages**.
-2. Click **Create** → **Create Worker**.
+2. Click **Create** → **Create Worker** → **Start with Hello world!**.
 3. Name it, e.g. `passmaker` (the name becomes part of your URL: `passmaker.<your-subdomain>.workers.dev`).
 4. Click **Deploy** to create it with the default "hello world" code — we'll replace that next.
 
@@ -50,13 +50,7 @@ Leave this tab open — you'll need the database ID in a moment.
 3. Delete the default `hello world` code and paste the entire contents of `worker.js`.
 4. Click **Deploy**.
 
-That's it — the Worker is live. Open `https://passmaker.<your-subdomain>.workers.dev` in a browser; the first request creates all tables (`servers`, `codes`, `jobs`, `sessions`, `attempts`) automatically.
-
-### Verify it works
-
-1. On the home page, click **Create server** and make a test server. You should receive a token.
-2. If you see *"PassMaker: no D1 database is bound"*, the binding's variable name isn't `DB` — fix it in **Settings → Bindings**.
-3. If something breaks, check **Workers & Pages → your Worker → Logs** (or **Observability → Tail Workers**) for the error output.
+That's it — the Worker is live. Open `https://<worker-name>.<your-subdomain>.workers.dev` in a browser; the first request creates all tables (`servers`, `codes`, `jobs`, `sessions`, `attempts`) automatically.
 
 ---
 
@@ -71,86 +65,3 @@ To serve PassMaker from your own domain, e.g. `pass.yourdomain.com`:
 Cloudflare creates the DNS record automatically (the zone must be on the same Cloudflare account). SSL is provisioned automatically. Players will then visit `https://pass.yourdomain.com/<serverid>`.
 
 ---
-
-## 6. Day-2 operations
-
-All of these are done in the dashboard.
-
-### Update the Worker
-
-1. Worker → **Code** tab → **Edit**.
-2. Paste the updated `worker.js` and click **Deploy**.
-
-Deployments are atomic — no downtime. No schema migration is needed: new tables are added automatically on the first request after the deploy, and existing tables are untouched (`CREATE TABLE IF NOT EXISTS`).
-
-### View logs
-
-- Worker → **Observability** (or **Logs**) → **Tail Workers** to watch requests live.
-- Any unhandled errors appear here with stack traces (`PassMaker error ...`).
-
-### Back up the database
-
-1. Go to **Storage & Databases → D1 SQL databases** → `passmaker`.
-2. Open the **Console** tab.
-3. (Optional) To export everything, use **Export** if shown in your dashboard version, or run a `SELECT` per table and download the results as CSV/JSON.
-
-### Run SQL manually
-
-1. `passmaker` database → **Console** tab.
-2. Type a query and press **Run**, for example:
-
-   ```sql
-   SELECT COUNT(*) FROM servers;
-   ```
-
-### Wipe test data (destructive)
-
-In the D1 Console:
-
-```sql
-DELETE FROM servers;
-DELETE FROM codes;
-DELETE FROM jobs;
-DELETE FROM sessions;
-```
-
----
-
-## 7. How it fits together
-
-```text
-Player browser ──► Worker (pages + /api/*) ──► D1 (DB binding)
-                                                    ▲
-Minecraft server plugin ──► /api/plugin/* ──────────┘
-  (polls with Bearer token; outbound only, works
-   behind Aternos / playit.gg)
-```
-
-- **Players** visit `/<serverid>` and enter a sign-up code; the Worker queues a job in D1.
-- The **PassMaker plugin** polls `/api/plugin/poll` with the server token, picks up jobs, creates the account in-game, and reports back via `/api/plugin/result`.
-- **Owners** sign in at `/login` (username = server ID) to manage codes, password, and token in `/panel`.
-
-Because the plugin only makes outbound HTTP requests, no port forwarding or inbound access to your Minecraft server is required.
-
----
-
-## 8. Troubleshooting
-
-| Symptom | Cause / fix |
-|---|---|
-| `500: no D1 database is bound` | The binding's variable name isn't `DB`, or you never added it. Fix it in **Settings → Bindings**. |
-| Tables missing / SQL errors | The binding points at the wrong database, or the first request hasn't run yet. Visit the homepage once and check you picked `passmaker` in the binding. |
-| Paste in the editor didn't save | You edited but never clicked **Deploy** — edits aren't live until deployed. |
-| Plugin says "Invalid token" | The token in-game doesn't match. Regenerate it in `/panel` → **Server token**, then run `/pass token <new token>` in the server console. |
-| "This server is offline right now" | The plugin hasn't polled in the last 90 seconds. Make sure the Minecraft server is running and the plugin is installed. |
-| Stuck "waiting for the server" | Jobs time out after 60 seconds if the plugin never answers; the reserved code use is refunded automatically. |
-| Rate-limit errors (429) | Built-in per-IP limits (logins, code attempts, server creation). They clear automatically within their window. |
-
-### Quick checklist
-
-- [ ] D1 database created (`passmaker`)
-- [ ] Worker created (`passmaker`)
-- [ ] D1 bound with variable name exactly `DB`
-- [ ] `worker.js` pasted in and **Deployed**
-- [ ] Home page loads and a test server can be created
-- [ ] (Optional) Custom domain added
