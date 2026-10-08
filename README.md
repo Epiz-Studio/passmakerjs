@@ -1,10 +1,8 @@
 # PassMaker Worker.js
 
-# Deploying PassMaker on Cloudflare (web dashboard)
+# Deploying PassMaker on Cloudflare
 
-PassMaker is a single-file Cloudflare Worker (`worker.js`). The only thing it needs besides the file itself is a **D1 database** bound to the Worker under the variable name `DB`. All tables are created automatically on the first request — there is no migration step.
-
-Everything below is done in the Cloudflare web dashboard at [dash.cloudflare.com](https://dash.cloudflare.com). No command line or Node.js required.
+Everything below is done in the Cloudflare web dashboard at [dash.cloudflare.com](https://dash.cloudflare.com). No command line or Node.js required. No skills required.
 
 **Requirements:**
 
